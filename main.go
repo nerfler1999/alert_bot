@@ -563,6 +563,5 @@ Colleagues, deposit channels TD and H2HTD are working smoothly. Please increase 
 		}
 	}()
 
-	// Бесконечный цикл (держит горутину живой)
 	select {}
 }
