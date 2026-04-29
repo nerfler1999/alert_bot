@@ -131,7 +131,7 @@ func handleMessage(bot *tgbotapi.BotAPI, update tgbotapi.Update) {
 		bot.Send(msg)
 	case "Посчитать балансы":
 		balanceData[userID] = make(map[string]float64)
-		balanceStep[userID] = 0 // 0-5 лимиты, 6-11 вылил
+		balanceStep[userID] = 0
 		bot.Send(tgbotapi.NewMessage(chatID, "💰 Лимиты провайдеров\n\nБади:"))
 
 	case "edit_checklist":
@@ -181,8 +181,6 @@ func handleMessage(bot *tgbotapi.BotAPI, update tgbotapi.Update) {
 		bot.Send(msg)
 		userState[userID] = ""
 	}
-	// ✅ Замени ВСЮ блок балансов в handleMessage:
-	// ✅ Балансы (только если состояние активно)
 	if _, hasBalance := balanceStep[userID]; hasBalance {
 		step := balanceStep[userID]
 		providers := []string{"Бади", "Ген", "Врр", "Рх", "Глобал", "Глидех"}
@@ -218,7 +216,6 @@ func handleMessage(bot *tgbotapi.BotAPI, update tgbotapi.Update) {
 			}
 			bot.Send(tgbotapi.NewMessage(chatID, fmt.Sprintf("%s (%s):", nextProvider, nextType)))
 		} else {
-			// ✅ РАСЧЕТ
 			totalLimit := 0.0
 			totalPoured := 0.0
 			for _, p := range providers {
@@ -234,8 +231,6 @@ func handleMessage(bot *tgbotapi.BotAPI, update tgbotapi.Update) {
 			bot.Send(tgbotapi.NewMessage(chatID, fmt.Sprintf("Добрый день! Коллеги, у вас осталось %.0f INR трафика на депозитных TD и H2HTD интент каналах. Пожалуйста, используйте его.", w1)))
 			bot.Send(tgbotapi.NewMessage(chatID, fmt.Sprintf("Добрый день! Коллеги, у вас осталось %.0f INR трафика на депозитных TD и H2HTD интент каналах. Пожалуйста, используйте его.", ls)))
 			bot.Send(tgbotapi.NewMessage(chatID, fmt.Sprintf("Добрый день! Коллеги, у вас осталось %.0f INR трафика на депозитных TD и H2HTD интент каналах. Пожалуйста, используйте его.", topx)))
-
-			// Очистка
 			delete(balanceStep, userID)
 			delete(balanceData, userID)
 		}
@@ -477,8 +472,6 @@ func send1winScript(bot *tgbotapi.BotAPI, chatID int64) {
 	bot.Send(tgbotapi.NewMessage(chatID, "Withdrawal channel is submitted normally. (Min 1000 - Max 150 000)"))
 	bot.Send(tgbotapi.NewMessage(chatID, "Deposit intent channel TD and H2HTD are under maintenance, wait for next notifications."))
 	bot.Send(tgbotapi.NewMessage(chatID, "Withdrawal channel is under maintenance, wait for next notifications."))
-
-	// Лимиты в конце
 	msg := tgbotapi.NewMessage(chatID, fmt.Sprintf("**Intent лимиты:**\n\n%s", intent))
 	msg.ParseMode = "Markdown"
 	bot.Send(msg)
@@ -534,8 +527,7 @@ func startScheduler(bot *tgbotapi.BotAPI) {
 	log.Println("🚀 Scheduler запущен")
 	rand.Seed(time.Now().UnixNano())
 
-	// Напоминания 3 раза: 9, 15, 21
-	tickerPush := time.NewTicker(8 * time.Hour) // Примерно
+	tickerPush := time.NewTicker(8 * time.Hour)
 	go func() {
 		for range tickerPush.C {
 			pushText := `Не забудь пропушить провайдеров!
@@ -547,7 +539,6 @@ Colleagues, deposit channels TD and H2HTD are working smoothly. Please increase 
 		}
 	}()
 
-	// Комплименты: каждые 12 часов
 	tickerCompliment := time.NewTicker(12 * time.Hour)
 	go func() {
 		compliments := []string{
